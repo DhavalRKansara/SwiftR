@@ -14,9 +14,6 @@ http://www.asp.net/signalr/overview/deployment/using-signalr-with-azure-web-site
 
 It's a wrapper around the SignalR JavaScript client running in a hidden web view. As such, it's subject to the same limitations of that client -- namely, no support for custom headers when using WebSockets. This is because the browser's WebSocket client does not support custom headers.
 
-### UIWebView or WKWebView?
-
-Either, your choice. Note that since WKWebView runs in a separate process, it does not have access to cookies in NSHTTPCookieStorage. If you need cookies, use UIWebView. SwiftR uses UIWebView by default, but you can choose WKWebView instead:
 
 ```swift
 // Client
@@ -287,7 +284,7 @@ let connection = SignalR("https://swiftr.azurewebsites.net")
 connection.headers = ["X-MyHeader1": "Value1", "X-MyHeader2", "Value2"]
 ```
 
-#### Cookies (UIWebView Only)
+
 
 SwiftR will send any cookies in your app's NSHTTPCookieStorage to SignalR. You can also set cookies manually:
 
