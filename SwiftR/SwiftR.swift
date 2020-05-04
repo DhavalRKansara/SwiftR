@@ -293,13 +293,21 @@ open class SignalR: NSObject, SwiftRWebDelegate {
     func shouldHandleRequest(_ request: URLRequest) -> Bool {
         if request.url!.absoluteString.hasPrefix("swiftr://") {
             let id = (request.url!.absoluteString as NSString).substring(from: 9)
-            let msg = webView.stringByEvaluatingJavaScript(from: "readMessage('\(id)')")!
-            let data = msg.data(using: String.Encoding.utf8, allowLossyConversion: false)!
-            let json = try! JSONSerialization.jsonObject(with: data, options: [])
-            
-            if let m = json as? [String: Any] {
-                processMessage(m)
+            //let msg = webView.stringByEvaluatingJavaScript(from: "readMessage('\(id)')")!
+            webView.evaluateJavaScript("readMessage('\(id)')") { (result, error) in
+                if error != nil {
+                    let msg = result as? String
+                    
+                    let data = msg!.data(using: String.Encoding.utf8, allowLossyConversion: false)
+                    let json = try! JSONSerialization.jsonObject(with: data!, options: [])
+                   
+                   if let m = json as? [String: Any] {
+                    self.processMessage(m)
+                   }
+                }
             }
+            
+            
 
             return false
         }
@@ -432,8 +440,8 @@ open class SignalR: NSObject, SwiftRWebDelegate {
     // MARK: - Web delegate methods
     
 #if os(iOS)
-    open func webView(_ webView: UIWebView, shouldStartLoadWith request: URLRequest, navigationType: UIWebViewNavigationType) -> Bool {
-        return shouldHandleRequest(request)
+    open func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        decisionHandler(.allow)
     }
 #else
     public func webView(_ webView: WebView!, decidePolicyForNavigationAction actionInformation: [AnyHashable : Any]!, request: URLRequest!, frame: WebFrame!, decisionListener listener: WebPolicyDecisionListener!) {
@@ -556,8 +564,8 @@ public enum SignalRVersion : CustomStringConvertible {
 }
 
 #if os(iOS)
-    typealias SwiftRWebView = UIWebView
-    public protocol SwiftRWebDelegate: WKNavigationDelegate, WKScriptMessageHandler, UIWebViewDelegate {}
+    typealias SwiftRWebView = WKWebView
+    public protocol SwiftRWebDelegate: WKNavigationDelegate, WKScriptMessageHandler {}
 #else
     typealias SwiftRWebView = WebView
     public protocol SwiftRWebDelegate: WKNavigationDelegate, WKScriptMessageHandler, WebPolicyDelegate {}
